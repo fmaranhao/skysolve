@@ -213,12 +213,14 @@ class skyCamera():
             print ("picamera started", flush=True)
             self.skyStatus(0," camera started")
             try:
-                for _ in self.camera.capture_continuous(stream, self.format,
+                while True:
+                    yield picam2.capture_array()
+                #for _ in self.camera.capture_continuous(stream, self.format,
                                                         use_video_port=False):
 
                     # return current frame
-                    stream.seek(0)
-                    yield stream.read()
+                    #stream.seek(0)
+                    #yield stream.read()
                     if not self.runMode:
                         self.cameraStopped = True
                         print ("camera stopped",flush=True)
@@ -226,8 +228,8 @@ class skyCamera():
                     self.cameraStopped = False
 
                     # reset stream for next frame
-                    stream.seek(0)
-                    stream.truncate()
+                    #stream.seek(0)
+                    #stream.truncate()
             except picamera2.PiCameraRuntimeError as e:
                 print("Getimage caught e", e,flush=True)
                 raise e
