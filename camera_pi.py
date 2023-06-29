@@ -214,7 +214,7 @@ class skyCamera():
             self.skyStatus(0," camera started")
             try:
                 while True:
-                    yield picam2.capture_array()
+                    yield self.camera.capture_array()
                 #for _ in self.camera.capture_continuous(stream, self.format,
                 #                                        use_video_port=False):
 
