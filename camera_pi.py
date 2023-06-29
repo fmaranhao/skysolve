@@ -2,7 +2,7 @@
 import io
 import time
 from tkinter import EXCEPTION
-import picamera
+import picamera2
 
 from fractions import Fraction
 import threading
@@ -83,7 +83,7 @@ class skyCamera():
     def __init__(self, skystatus, shutter=1000000, ISO=800, resolution=(2000,1500), format = 'jpeg'):
         print("skystatus", skystatus)
         self.skyStatus = skystatus
-        self.camera = picamera.PiCamera()
+        self.camera = picamera2.PiCamera2()
         self.camera.resolution = (2000,1500)
         self.camera.framerate = Fraction(1,6)
         self.shutter=shutter
@@ -190,7 +190,7 @@ class skyCamera():
                     self.frame = frame
                     self.event.set()  # send signal to clients
                 time.sleep(0)
-            except picamera.PiCameraError as e:
+            except picamera2.PiCameraError as e:
                 print("camera thread caught e",e, flush=True)
  
         self.thread = None
@@ -228,6 +228,6 @@ class skyCamera():
                     # reset stream for next frame
                     stream.seek(0)
                     stream.truncate()
-            except picamera.PiCameraRuntimeError as e:
+            except picamera2.PiCameraRuntimeError as e:
                 print("Getimage caught e", e,flush=True)
                 raise e
