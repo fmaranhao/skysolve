@@ -34,10 +34,11 @@ from scipy import stats
 
 print("argssss", sys.argv, len(sys.argv))
 print('user', getpass.getuser())
+wifi_gpio_pin=33
 GPIO.setmode(GPIO.BOARD)
-GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-initGPIO7 = GPIO.input(7)
-print("gpio", initGPIO7)
+GPIO.setup(wifi_gpio_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+initGPIO = GPIO.input(wifi_gpio_pin)
+print("gpio", initGPIO)
 try:
     os.system('systemctl restart encodertoSkySafari.service ')
 except BaseException as e:
@@ -216,14 +217,14 @@ def switchWatcher():
     
     #check for shutdown switch throw
 
-    initGPIO7 = GPIO.input(7)
+    initGPIO = GPIO.input(wifi_gpio_pin)
     while True:
         time.sleep(2)
-        pin7 = GPIO.input(7)
-        if pin7 != initGPIO7:
-            print("pin7 changed states")
+        gpio_pin = GPIO.input(wifi_gpio_pin)
+        if gpio_pin != initGPIO:
+            print("wifi pin changed states")
             time.sleep(3)
-            if GPIO.input(7) == pin7:
+            if GPIO.input(wifi_gpio_pin) == gpio_pin:
                 print("shutting down")
                 skyStatusText = "shutting down."
                 th = threading.Thread(target=shutThread)
