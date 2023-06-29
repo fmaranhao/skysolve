@@ -216,7 +216,7 @@ class skyCamera():
                 while True:
                     yield picam2.capture_array()
                 #for _ in self.camera.capture_continuous(stream, self.format,
-                                                        use_video_port=False):
+                #                                        use_video_port=False):
 
                     # return current frame
                     #stream.seek(0)
