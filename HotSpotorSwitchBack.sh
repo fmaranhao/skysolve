@@ -1,1 +1,1 @@
-sudo /home/pi/Autohotspot/autohotspot-setup.sh 6
+sudo /home/pi/skysolve/Autohotspot/autohotspot-setup.sh 6
