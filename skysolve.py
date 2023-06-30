@@ -6,7 +6,7 @@ import time
 from flask.wrappers import Request
 import pprint
 
-from camera_pi import skyCamera
+from camera_pi2 import skyCamera
 
 from datetime import datetime, timedelta
 import threading
