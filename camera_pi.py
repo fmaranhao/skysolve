@@ -2,7 +2,7 @@
 import io
 import time
 from tkinter import EXCEPTION
-import picamera2
+import picamera
 
 from fractions import Fraction
 import threading
@@ -83,7 +83,7 @@ class skyCamera():
     def __init__(self, skystatus, shutter=1000000, ISO=800, resolution=(2000,1500), format = 'jpeg'):
         print("skystatus", skystatus)
         self.skyStatus = skystatus
-        self.camera = picamera2.Picamera2()
+        self.camera = picamera.PiCamera()
         self.camera.resolution = (2000,1500)
         self.camera.framerate = Fraction(1,6)
         self.shutter=shutter
@@ -190,7 +190,7 @@ class skyCamera():
                     self.frame = frame
                     self.event.set()  # send signal to clients
                 time.sleep(0)
-            except picamera2.PiCameraError as e:
+            except picamera.PiCameraError as e:
                 print("camera thread caught e",e, flush=True)
  
         self.thread = None
@@ -213,14 +213,12 @@ class skyCamera():
             print ("picamera started", flush=True)
             self.skyStatus(0," camera started")
             try:
-                while True:
-                    yield self.camera.capture_array()
-                #for _ in self.camera.capture_continuous(stream, self.format,
-                #                                        use_video_port=False):
+                for _ in self.camera.capture_continuous(stream, self.format,
+                                                        use_video_port=False):
 
                     # return current frame
-                    #stream.seek(0)
-                    #yield stream.read()
+                    stream.seek(0)
+                    yield stream.read()
                     if not self.runMode:
                         self.cameraStopped = True
                         print ("camera stopped",flush=True)
@@ -228,8 +226,8 @@ class skyCamera():
                     self.cameraStopped = False
 
                     # reset stream for next frame
-                    #stream.seek(0)
-                    #stream.truncate()
-            except picamera2.PiCameraRuntimeError as e:
+                    stream.seek(0)
+                    stream.truncate()
+            except picamera.PiCameraRuntimeError as e:
                 print("Getimage caught e", e,flush=True)
                 raise e
