@@ -2,7 +2,8 @@
 import io
 import time
 from tkinter import EXCEPTION
-import picamera2
+#import picamera                                                                                             # Original PiCamera command
+import picamera2                                                                                             # Compatible Picamera2 command
 
 from fractions import Fraction
 import threading
@@ -69,6 +70,9 @@ class imageEvent(object):
 
 class skyCamera():
     camera = None
+    previewConfig = None                                                                                     # Compatible Picamera2 command
+    captureConfig = None                                                                                     # Compatible Picamera2 command
+    frameRate = 1/6
     event = imageEvent()
     thread = None  # background thread that reads frames from camera
     gainThread = None
@@ -83,9 +87,18 @@ class skyCamera():
     def __init__(self, skystatus, shutter=1000000, ISO=800, resolution=(2000,1500), format = 'jpeg'):
         print("skystatus", skystatus)
         self.skyStatus = skystatus
-        self.camera = picamera2.Picamera2()
-        self.camera.resolution = (2000,1500)
-        self.camera.framerate = Fraction(1,6)
+        #self.camera = picamera.PiCamera()                                                                   # Original PiCamera command
+        self.camera = picamera2.Picamera2()                                                                  # Compatible Picamera2 command
+        #self.camera.resolution = (2000,1500)                                                                # Original PiCamera command
+        self.previewConfig = self.camera.create_preview_configuration({"size": (640,480)})                   # Compatible Picamera2 command
+        if type(resolution) is str:                                                                          # Compatible Picamera2 command
+            resolution = tuple(map(int, resolution.split('x')))                                              # Compatible Picamera2 command
+        self.captureConfig = self.camera.create_still_configuration({"size": resolution})                    # Compatible Picamera2 command
+        self.camera.set_controls({"FrameDurationLimits": (self.frameRate*1000000,self.frameRate*1000000)})   # Compatible Picamera2 command
+        #self.camera.framerate = Fraction(1,6)                                                               # Original PiCamera command
+        self.camera.start_preview(picamera2.Preview.NULL)
+        self.camera.configure(self.previewConfig)
+        self.camera.start()
         self.shutter=shutter
         self.ISO=ISO
         self.resolution=resolution
@@ -121,8 +134,10 @@ class skyCamera():
         while not self.cameraStopped:
             time.sleep(.2)
         res = tuple(map(int, size.split('x')))
-        print ("setting resolution", res, self.camera.resolution, flush=True)
-        self.camera.resolution = res
+        #print ("setting resolution", res, self.camera.resolution, flush=True)                               # Original PiCamera command
+        #self.camera.resolution = res                                                                        # Compatible Picamera2 command
+        print ("setting resolution", res, flush=True)
+        self.captureConfig = self.camera.create_still_configuration({"size": res})
         self.runMode = True
 
     def setFormat(self,type):
@@ -133,7 +148,7 @@ class skyCamera():
         self.runMode = True
 
     def setShutter(self, value):
-        self.camera.shutter_speed = value
+        #self.camera.shutter_speed = value                                                                   # Original PiCamera command
         self.shutter = value
         self.setupGain()
         print ("new shutter speed", value, flush=True)
@@ -155,15 +170,21 @@ class skyCamera():
         while not self.cameraStopped:
             pass
 
-        self.camera.resolution = self.resolution
+        #self.camera.resolution = self.resolution
+        self.captureConfig = self.camera.create_still_configuration({"size": self.resolution})               # Compatible Picamera2 command
         print ('camera framesize at init', self.resolution, flush=True)
-        self.camera.iso = self.ISO
-        self.camera.exposure_mode = 'auto'
-        self.camera.framerate = Fraction(1,6)
+        #self.camera.iso = self.ISO                                                                          # Original PiCamera command
+        self.camera.set_controls({"AeEnable": True})                                                         # Compatible Picamera2 command
+        self.camera.set_controls({"AnalogueGain": self.ISO/100})                                             # Compatible Picamera2 command
+        #self.camera.exposure_mode = 'auto'                                                                  # Original PiCamera command
+        #self.camera.framerate = Fraction(1,6)                                                               # Original PiCamera command
 
-        self.camera.shutter_speed = self.shutter
+        #self.camera.shutter_speed = self.shutter                                                            # Original PiCamera command
+        self.camera.set_controls({"ExposureTime": 1000000})                                                  # Compatible Picamera2 command
         time.sleep(10)
-        self.camera.exposure_mode = 'off'
+
+        #self.camera.exposure_mode = 'off'                                                                   # Original PiCamera command
+        self.camera.set_controls({"AeEnable": False})                                                        # Compatible Picamera2 command
         self.runMode = True
         self.abortMOde = False
 
@@ -190,8 +211,8 @@ class skyCamera():
                     self.frame = frame
                     self.event.set()  # send signal to clients
                 time.sleep(0)
-            except picamera2.PiCameraError as e:
-                print("camera thread caught e",e, flush=True)
+            except: # picamera.PiCameraError as e:                                                           # Original PiCamera command
+                print("camera thread caught exception", flush=True)
  
         self.thread = None
     # import picamera.array
@@ -213,14 +234,13 @@ class skyCamera():
             print ("picamera started", flush=True)
             self.skyStatus(0," camera started")
             try:
-                while True:
-                    yield self.camera.capture_array()
-                #for _ in self.camera.capture_continuous(stream, self.format,
-                #                                        use_video_port=False):
+                #for _ in self.camera.capture_continuous(stream, self.format,                                # Original PiCamera command
+                #                                        use_video_port=False):                              # Original PiCamera command
 
                     # return current frame
-                    #stream.seek(0)
-                    #yield stream.read()
+                    self.camera.switch_mode_and_capture_file(self.captureConfig, stream, format=self.format) # Compatible Picamera2 command
+                    stream.seek(0)
+                    yield stream.read()
                     if not self.runMode:
                         self.cameraStopped = True
                         print ("camera stopped",flush=True)
@@ -228,8 +248,9 @@ class skyCamera():
                     self.cameraStopped = False
 
                     # reset stream for next frame
-                    #stream.seek(0)
-                    #stream.truncate()
-            except picamera2.PiCameraRuntimeError as e:
-                print("Getimage caught e", e,flush=True)
-                raise e
+                    stream.seek(0)
+                    stream.truncate()
+                    sleep(.5)
+            except: # picamera.PiCameraRuntimeError as e:                                                    # Original PiCamera command
+                print("Getimage caught exception", flush=True)
+                #raise e
