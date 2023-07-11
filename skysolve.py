@@ -639,10 +639,10 @@ def index():
     global skyCam, cameraNotPresent, skyStatusText, solveT, verboseSolveText
     verboseSolveText = ""
     shutterValues = ['.001', '.002', '.005', '.01', '.02', '.05', '.1', '.15', '.2',
-                     '.5', '.7', '.9', '1', '2.', '3', '4', '5', '10']
+                     '.5', '.7', '.9', '1', '2', '3', '4', '5', '10']
     skyFrameValues = ['400x300', '640x480', '800x600', '1024x768',
                       '1280x960', '1920x1440', '2000x1000', '2000x1500']
-    isoValues = ['100', '200', '400', '800']
+    isoValues = ['100', '200', '400', '800', '1600', '3200']
     formatValues = ['jpeg', 'png']
     solveParams = {'PPA': 27, 'FieldWidth': 14, 'Timeout': 34,
                    'Sigma': 9, 'Depth': 20, 'SearchRadius': 10}
